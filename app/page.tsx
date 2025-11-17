@@ -116,7 +116,7 @@ export default function MangunrokRestaurant() {
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-2 text-2xl font-bold text-red-700">
-              🍮 <span>Mangunrok</span>
+              🏮 <span>Mangunrok</span>
             </div>
 
             {/* Desktop Navigation */}
@@ -351,7 +351,7 @@ export default function MangunrokRestaurant() {
       {/* Gallery Section */}
       <section id="gallery" className="py-16 px-4 bg-amber-100">
         <h2 className="text-4xl font-bold text-center text-stone-900 mb-12">
-          🍮 Gallery 🍮
+          🏮 Gallery 🏮
         </h2>
         <div className="max-w-4xl mx-auto">
           <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-red-700">
@@ -406,7 +406,7 @@ export default function MangunrokRestaurant() {
       {/* About Section */}
       <section id="about" className="py-16 px-4">
         <h2 className="text-4xl font-bold text-center text-stone-900 mb-12">
-          🍮 Our Story 🍮
+          🏮 Our Story 🏮
         </h2>
         <div className="max-w-4xl mx-auto bg-gradient-to-br from-white to-amber-50 rounded-3xl p-10 border-2 border-red-700 shadow-xl text-center text-lg leading-relaxed">
           <p className="mb-6">
@@ -431,7 +431,7 @@ export default function MangunrokRestaurant() {
       {/* Contact Section */}
       <section id="contact" className="py-16 px-4 bg-amber-100">
         <h2 className="text-4xl font-bold text-center text-stone-900 mb-12">
-          🍮 Visit Us 🍮
+          🏮 Visit Us 🏮
         </h2>
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-8">
           <div className="rounded-3xl overflow-hidden shadow-2xl border-4 border-red-700 h-[450px]">
