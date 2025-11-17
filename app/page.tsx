@@ -1,11 +1,17 @@
 "use client"
 import { Facebook, Instagram, Mail, MapPin, Menu as MenuIcon, Minus, Phone, Plus, ShoppingCart, Trash2, Twitter, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
+
+type CartItem = {
+  name: string;
+  price: number;
+  quantity: number;
+};
 
 export default function MangunrokRestaurant() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [cart, setCart] = useState([]);
+  const [cart, setCart] = useState<CartItem[]>([]);
   const [currentSlide, setCurrentSlide] = useState(0);
 
   const menuItems = {
@@ -45,11 +51,11 @@ export default function MangunrokRestaurant() {
     return () => clearInterval(timer);
   }, [slides.length]);
 
-  const addToCart = (name, price) => {
-    setCart(prevCart => {
-      const existing = prevCart.find(item => item.name === name);
+  const addToCart = (name: string, price: number) => {
+    setCart((prevCart) => {
+      const existing = prevCart.find((item) => item.name === name);
       if (existing) {
-        return prevCart.map(item =>
+        return prevCart.map((item) =>
           item.name === name ? { ...item, quantity: item.quantity + 1 } : item
         );
       }
@@ -57,19 +63,21 @@ export default function MangunrokRestaurant() {
     });
   };
 
-  const updateQuantity = (index, change) => {
-    setCart(prevCart => {
+  const updateQuantity = (index: number, change: number) => {
+    setCart((prevCart) => {
       const newCart = [...prevCart];
-      newCart[index].quantity += change;
-      if (newCart[index].quantity <= 0) {
+      const item = newCart[index];
+      if (!item) return prevCart;
+      item.quantity += change;
+      if (item.quantity <= 0) {
         newCart.splice(index, 1);
       }
       return newCart;
     });
   };
 
-  const removeFromCart = (index) => {
-    setCart(prevCart => prevCart.filter((_, i) => i !== index));
+  const removeFromCart = (index: number) => {
+    setCart((prevCart) => prevCart.filter((_, i) => i !== index));
   };
 
   const clearCart = () => {
@@ -93,7 +101,7 @@ export default function MangunrokRestaurant() {
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
   const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  const scrollToSection = (id) => {
+  const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
@@ -431,16 +439,16 @@ export default function MangunrokRestaurant() {
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.654543485502!2d-73.9863304!3d40.7476264!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c259a8f913666b%3A0x2d2adcb5bc0150f8!2sFood%20Gallery%2032!5e0!3m2!1sen!2sus!4v1759802027959!5m2!1sen!2sus"
               className="w-full h-full"
               style={{ border: 0 }}
-              allowFullScreen=""
+              allowFullScreen
               loading="lazy"
             ></iframe>
           </div>
 
           <form
-            onSubmit={(e) => {
+            onSubmit={(e: FormEvent<HTMLFormElement>) => {
               e.preventDefault();
               alert('Thank you for your message! We\'ll get back to you soon.');
-              e.target.reset();
+              (e.target as HTMLFormElement).reset();
             }}
             className="space-y-6"
           >
@@ -464,10 +472,10 @@ export default function MangunrokRestaurant() {
             </div>
             <div>
               <label className="block font-semibold text-stone-900 mb-2">Message</label>
-              <textarea
+                <textarea
                 required
                 placeholder="Your message or reservation request"
-                rows="5"
+                rows={5}
                 className="w-full px-4 py-3 border-2 border-red-700 rounded-2xl focus:outline-none focus:border-stone-900 transition-all resize-none"
               ></textarea>
             </div>
