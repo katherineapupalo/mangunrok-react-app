@@ -1,36 +1,154 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Mangunrok Asian Bistro - Full Stack Restaurant Application
 
-## Getting Started
+This is a full-stack restaurant web application built with Next.js, Node.js, Express, and MongoDB.
 
-First, run the development server:
+## Features
+
+- 🍜 **Menu Management**: All menu items are dynamically loaded from MongoDB database
+- 🛒 **Shopping Cart**: Add, update, and remove items from cart
+- 📦 **Order Processing**: Orders are automatically saved to MongoDB database
+- 💾 **Data Persistence**: All changes (menu, orders) are persisted to database
+- 🎨 **Modern UI**: Responsive design built with Tailwind CSS
+
+## Tech Stack
+
+### Frontend
+- Next.js 16
+- React 19
+- TypeScript
+- Tailwind CSS
+- Lucide React (Icons)
+
+### Backend
+- Next.js API Routes
+- MongoDB (via Mongoose)
+- TypeScript
+
+## Installation and Setup
+
+### 1. Install Dependencies
+
+```bash
+npm install
+```
+
+### 2. Configure MongoDB
+
+Create `.env.local` file (based on `.env.local.example`):
+
+```bash
+# Local MongoDB
+MONGODB_URI=mongodb://localhost:27017/mangunrok
+
+# Or use MongoDB Atlas (Cloud Database)
+# MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/mangunrok
+```
+
+### 3. Initialize Menu Data
+
+Run the initialization script to populate menu items in the database:
+
+```bash
+npm run init-menu
+```
+
+### 4. Start Development Server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The application will run on [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## API Endpoints
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### GET /api/menu
+Get all menu items, grouped by category.
 
-## Learn More
+**Response Example:**
+```json
+{
+  "appetizers": [
+    { "name": "Gyoza (Pork or Veggie)", "price": 8, "category": "appetizers" }
+  ],
+  "mains": [...],
+  "sushi": [...]
+}
+```
 
-To learn more about Next.js, take a look at the following resources:
+### POST /api/orders
+Create a new order.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**Request Body:**
+```json
+{
+  "items": [
+    { "name": "Tonkotsu Ramen", "price": 16, "quantity": 2 }
+  ]
+}
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+**Response:**
+```json
+{
+  "message": "Order placed successfully",
+  "orderId": "...",
+  "total": 32
+}
+```
 
-## Deploy on Vercel
+### GET /api/orders
+Get all orders (for administrative purposes).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Project Structure
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+mangunrok-react-app/
+├── app/
+│   ├── api/
+│   │   ├── menu/
+│   │   │   └── route.ts          # Menu API endpoint
+│   │   └── orders/
+│   │       └── route.ts          # Orders API endpoint
+│   ├── layout.tsx                # Root layout
+│   └── page.tsx                  # Main page
+├── server/
+│   ├── config/
+│   │   └── db.ts                 # MongoDB connection configuration
+│   ├── models/
+│   │   ├── MenuItem.ts           # Menu item model
+│   │   └── Order.ts              # Order model
+│   └── scripts/
+│       └── initMenu.ts           # Menu initialization script
+├── package.json
+└── README.md
+```
+
+## Deployment
+
+### Deploy with Vercel
+
+1. Push code to GitHub
+2. Import project on [Vercel](https://vercel.com)
+3. Add environment variable `MONGODB_URI`
+4. After deployment, run `npm run init-menu` to initialize menu data
+
+### Using Other Platforms
+
+Ensure:
+- Set `MONGODB_URI` environment variable
+- Run `npm run build` to build the project
+- Run `npm run init-menu` to initialize database
+
+## Development
+
+### Adding New Menu Items
+
+1. Edit `server/scripts/initMenu.ts`
+2. Run `npm run init-menu` to reinitialize database
+
+Or add data directly through MongoDB client.
+
+## License
+
+MIT
