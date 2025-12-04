@@ -576,6 +576,7 @@ export default function MangunrokRestaurant() {
           </div>
         </div>
       </footer>
+      </footer>
     </div>
   );
 }
