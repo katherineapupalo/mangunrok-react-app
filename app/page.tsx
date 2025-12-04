@@ -1,39 +1,36 @@
 "use client"
 import { Facebook, Instagram, Mail, MapPin, Menu as MenuIcon, Minus, Phone, Plus, ShoppingCart, Trash2, Twitter, X } from 'lucide-react';
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState } from 'react';
 
-type CartItem = {
+interface MenuItem {
+  name: string;
+  price: number;
+  category?: string;
+}
+
+interface CartItem {
   name: string;
   price: number;
   quantity: number;
-};
+}
+
+interface MenuItems {
+  appetizers: MenuItem[];
+  mains: MenuItem[];
+  sushi: MenuItem[];
+}
 
 export default function MangunrokRestaurant() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [currentSlide, setCurrentSlide] = useState(0);
-
-  const menuItems = {
-    appetizers: [
-      { name: 'Gyoza (Pork or Veggie)', price: 8 },
-      { name: 'Spring Rolls (4 pcs)', price: 7 },
-      { name: 'Edamame with Sea Salt', price: 6 },
-      { name: 'Takoyaki (Octopus Balls)', price: 10 }
-    ],
-    mains: [
-      { name: 'Tonkotsu Ramen', price: 16 },
-      { name: 'Curry with Rice', price: 14 },
-      { name: 'Korean BBQ Beef Bowl', price: 18 },
-      { name: 'Teriyaki Salmon Bento', price: 20 }
-    ],
-    sushi: [
-      { name: 'California Roll (8 pcs)', price: 12 },
-      { name: 'Spicy Tuna Roll', price: 14 },
-      { name: 'Dragon Roll', price: 16 },
-      { name: 'Sashimi Platter', price: 22 }
-    ]
-  };
+  const [menuItems, setMenuItems] = useState<MenuItems>({
+    appetizers: [],
+    mains: [],
+    sushi: []
+  });
+  const [isLoading, setIsLoading] = useState(true);
 
   const slides = [
     { img: 'https://images.unsplash.com/photo-1572830191837-0b705965d1a8?q=80&w=1548&auto=format&fit=crop', caption: 'Fresh Tonkotsu Ramen' },
@@ -44,6 +41,28 @@ export default function MangunrokRestaurant() {
     { img: 'https://media.architecturaldigest.com/photos/572a34ffe50e09d42bdfb5e0/master/pass/japanese-restaurants-la-01.jpg', caption: 'Beautiful Interior' }
   ];
 
+  // Fetch menu items from Express API
+  useEffect(() => {
+    const fetchMenuItems = async () => {
+      try {
+        // Using Express API endpoint (defined in server.ts)
+        const response = await fetch('/api/menu');
+        if (response.ok) {
+          const data = await response.json();
+          setMenuItems(data);
+        } else {
+          console.error('Failed to fetch menu items');
+        }
+      } catch (error) {
+        console.error('Error fetching menu items:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchMenuItems();
+  }, []);
+
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slides.length);
@@ -52,10 +71,10 @@ export default function MangunrokRestaurant() {
   }, [slides.length]);
 
   const addToCart = (name: string, price: number) => {
-    setCart((prevCart) => {
-      const existing = prevCart.find((item) => item.name === name);
+    setCart(prevCart => {
+      const existing = prevCart.find(item => item.name === name);
       if (existing) {
-        return prevCart.map((item) =>
+        return prevCart.map(item =>
           item.name === name ? { ...item, quantity: item.quantity + 1 } : item
         );
       }
@@ -64,12 +83,10 @@ export default function MangunrokRestaurant() {
   };
 
   const updateQuantity = (index: number, change: number) => {
-    setCart((prevCart) => {
+    setCart(prevCart => {
       const newCart = [...prevCart];
-      const item = newCart[index];
-      if (!item) return prevCart;
-      item.quantity += change;
-      if (item.quantity <= 0) {
+      newCart[index].quantity += change;
+      if (newCart[index].quantity <= 0) {
         newCart.splice(index, 1);
       }
       return newCart;
@@ -77,7 +94,7 @@ export default function MangunrokRestaurant() {
   };
 
   const removeFromCart = (index: number) => {
-    setCart((prevCart) => prevCart.filter((_, i) => i !== index));
+    setCart(prevCart => prevCart.filter((_, i) => i !== index));
   };
 
   const clearCart = () => {
@@ -86,16 +103,37 @@ export default function MangunrokRestaurant() {
     }
   };
 
-  const checkout = () => {
+  const checkout = async () => {
     if (cart.length === 0) {
       alert('Your cart is empty. Please add items before checking out.');
       return;
     }
-    const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    const itemsList = cart.map(item => `${item.name} (x${item.quantity})`).join('\n');
-    alert(`Thank you for your order!\n\nItems:\n${itemsList}\n\nTotal: $${total.toFixed(2)}\n\nWe'll prepare your order shortly!`);
-    setCart([]);
-    setIsCartOpen(false);
+
+    try {
+      // Using Express API endpoint (defined in server.ts)
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ items: cart }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        const itemsList = cart.map(item => `${item.name} (x${item.quantity})`).join('\n');
+        alert(`Thank you for your order!\n\nOrder ID: ${data.orderId}\n\nItems:\n${itemsList}\n\nTotal: $${total.toFixed(2)}\n\nWe'll prepare your order shortly!`);
+        setCart([]);
+        setIsCartOpen(false);
+      } else {
+        const error = await response.json();
+        alert(`Failed to place order: ${error.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Error placing order:', error);
+      alert('Failed to place order. Please try again.');
+    }
   };
 
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -116,7 +154,7 @@ export default function MangunrokRestaurant() {
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-2 text-2xl font-bold text-red-700">
-              🏮 <span>Mangunrok</span>
+              🍮 <span>Mangunrok</span>
             </div>
 
             {/* Desktop Navigation */}
@@ -285,6 +323,11 @@ export default function MangunrokRestaurant() {
         <h2 className="text-4xl font-bold text-center text-stone-900 mb-12">
           🍜 Our Menu 🍜
         </h2>
+        {isLoading ? (
+          <div className="text-center py-12">
+            <p className="text-xl text-stone-700">Loading menu...</p>
+          </div>
+        ) : (
         <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-8">
           {/* Appetizers */}
           <div className="bg-gradient-to-br from-white to-amber-50 rounded-3xl p-8 border-2 border-red-700 shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all relative">
@@ -346,12 +389,13 @@ export default function MangunrokRestaurant() {
             ))}
           </div>
         </div>
+        )}
       </section>
 
       {/* Gallery Section */}
       <section id="gallery" className="py-16 px-4 bg-amber-100">
         <h2 className="text-4xl font-bold text-center text-stone-900 mb-12">
-          🏮 Gallery 🏮
+          🍮 Gallery 🍮
         </h2>
         <div className="max-w-4xl mx-auto">
           <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-red-700">
@@ -406,12 +450,12 @@ export default function MangunrokRestaurant() {
       {/* About Section */}
       <section id="about" className="py-16 px-4">
         <h2 className="text-4xl font-bold text-center text-stone-900 mb-12">
-          🏮 Our Story 🏮
+          🍮 Our Story 🍮
         </h2>
         <div className="max-w-4xl mx-auto bg-gradient-to-br from-white to-amber-50 rounded-3xl p-10 border-2 border-red-700 shadow-xl text-center text-lg leading-relaxed">
           <p className="mb-6">
             Welcome to Mangunrok, where traditional Asian cuisine meets contemporary dining. 
-            Since 2016, we've been dedicated to bringing the authentic flavors of Japan, Korea, 
+            Since 2016, we&apos;ve been dedicated to bringing the authentic flavors of Japan, Korea, 
             and China to your table with a modern twist.
           </p>
           <p className="mb-6">
@@ -431,7 +475,7 @@ export default function MangunrokRestaurant() {
       {/* Contact Section */}
       <section id="contact" className="py-16 px-4 bg-amber-100">
         <h2 className="text-4xl font-bold text-center text-stone-900 mb-12">
-          🏮 Visit Us 🏮
+          🍮 Visit Us 🍮
         </h2>
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-8">
           <div className="rounded-3xl overflow-hidden shadow-2xl border-4 border-red-700 h-[450px]">
@@ -445,7 +489,7 @@ export default function MangunrokRestaurant() {
           </div>
 
           <form
-            onSubmit={(e: FormEvent<HTMLFormElement>) => {
+            onSubmit={(e) => {
               e.preventDefault();
               alert('Thank you for your message! We\'ll get back to you soon.');
               (e.target as HTMLFormElement).reset();
@@ -472,7 +516,7 @@ export default function MangunrokRestaurant() {
             </div>
             <div>
               <label className="block font-semibold text-stone-900 mb-2">Message</label>
-                <textarea
+              <textarea
                 required
                 placeholder="Your message or reservation request"
                 rows={5}
@@ -531,6 +575,7 @@ export default function MangunrokRestaurant() {
             </div>
           </div>
         </div>
+      </footer>
       </footer>
     </div>
   );
